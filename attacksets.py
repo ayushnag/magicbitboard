@@ -176,14 +176,16 @@ def initialise_rook_attacks():
 		ROOK_ATTACK_MASKS[sq] = (MASK_RANK[rank_of(sq)] ^ MASK_FILE[file_of(sq)]) & ~edges
 		ROOK_ATTACK_SHIFTS[sq] = 64 - pop_count(ROOK_ATTACK_MASKS[sq])
 
+		# Effectively do while loop
 		subset = 0
-		do {
+		while True:
 			index = subset
 			index = index * ROOK_MAGICS[sq]
 			index = index >> ROOK_ATTACK_SHIFTS[sq]
 			ROOK_ATTACKS[sq][index] = get_rook_attacks_for_init(sq, subset)
 			subset = (subset - ROOK_ATTACK_MASKS[sq]) & ROOK_ATTACK_MASKS[sq]
-		} while (subset)
+			if subset == 0:
+				break
 
 # Returns the attacks bitboard for a rook at a given square, using the magic lookup table
 def get_rook_attacks(square: Square, occ: int) -> int:
@@ -232,14 +234,17 @@ def initialise_bishop_attacks():
 		BISHOP_ATTACK_MASKS[sq] = (MASK_DIAGONAL[diagonal_of(sq)] ^ MASK_ANTI_DIAGONAL[anti_diagonal_of(sq)]) & ~edges
 		BISHOP_ATTACK_SHIFTS[sq] = 64 - pop_count(BISHOP_ATTACK_MASKS[sq])
 
+		# Effectively do while loop
 		subset = 0
-		do {
+		while True:
 			index = subset
 			index = index * BISHOP_MAGICS[sq]
 			index = index >> BISHOP_ATTACK_SHIFTS[sq]
 			BISHOP_ATTACKS[sq][index] = get_bishop_attacks_for_init(sq, subset)
 			subset = (subset - BISHOP_ATTACK_MASKS[sq]) & BISHOP_ATTACK_MASKS[sq]
-		} while (subset);
+			if subset == 0:
+				break
+			
 
 # Returns the attacks bitboard for a bishop at a given square, using the magic lookup table
 def get_bishop_attacks(square: Square, occ: int) -> int:
