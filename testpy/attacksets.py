@@ -4,7 +4,8 @@
 __author__ = "github.com/nkarve"
 __modified__ = "Ayush Nag"
 
-from square import Square, rank_of, file_of, diagonal_of, anti_diagonal_of, MASK_RANK, MASK_FILE, MASK_DIAGONAL, MASK_ANTI_DIAGONAL, AFILE, BFILE, CFILE, DFILE, EFILE, FFILE, GFILE, HFILE, RANK1, RANK2, RANK3, RANK4, RANK5, RANK6, RANK7, RANK8, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
+from ctypes import c_ulong
+from testpy.square import Square, rank_of, file_of, diagonal_of, anti_diagonal_of, MASK_RANK, MASK_FILE, MASK_DIAGONAL, MASK_ANTI_DIAGONAL, AFILE, BFILE, CFILE, DFILE, EFILE, FFILE, GFILE, HFILE, RANK1, RANK2, RANK3, RANK4, RANK5, RANK6, RANK7, RANK8, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 
 # Precomputed square masks
 SQUARE_BB: tuple = (
@@ -130,7 +131,7 @@ def pop_count(x: int):
 	x = (x & k2) + ((x >> 2) & k2)
 	x = (x + (x >> 4)) & k4
 	x = (x * kf) >> 56
-	return x
+	return x & 0b11111111
 
 # Calculates sliding attacks from a given square, on a given axis, taking into
 # account the blocking pieces. This uses the Hyperbola Quintessence Algorithm.
@@ -146,9 +147,12 @@ def get_rook_attacks_for_init(square: Square, occ: int) -> int:
 # Bitboard ROOK_ATTACK_MASKS[64];
 # int ROOK_ATTACK_SHIFTS[64];
 # Bitboard ROOK_ATTACKS[64][4096];
-ROOK_ATTACK_MASKS: list
-ROOK_ATTACK_SHIFTS: list
-ROOK_ATTACKS: list
+# ROOK_ATTACK_MASKS: ndarray = np.zeros(64, dtype=np.uint64)
+# ROOK_ATTACK_SHIFTS: ndarray = np.zeros(64, dtype=np.uint64)
+# ROOK_ATTACKS: ndarray = np.zeros((64, 4096), dtype=np.uint64)
+ROOK_ATTACK_MASKS: list = [0] * 64
+ROOK_ATTACK_SHIFTS: list = [0] * 64
+ROOK_ATTACKS: list = [[0] * 4096] * 64
 
 ROOK_MAGICS: tuple = (
 	0x0080001020400080, 0x0040001000200040, 0x0080081000200080, 0x0080040800100080,
@@ -182,7 +186,10 @@ def initialise_rook_attacks():
 			index = subset
 			index = index * ROOK_MAGICS[sq]
 			index = index >> ROOK_ATTACK_SHIFTS[sq]
+			if index == 3056:
+				print()
 			ROOK_ATTACKS[sq][index] = get_rook_attacks_for_init(sq, subset)
+			# TODO: (ERROR) should be doing mod arithmetic (unsigned long) but python uses negative
 			subset = (subset - ROOK_ATTACK_MASKS[sq]) & ROOK_ATTACK_MASKS[sq]
 			if subset == 0:
 				break
@@ -204,9 +211,12 @@ def get_bishop_attacks_for_init(square: Square, occ: int) -> int:
 	return sliding_attacks(square, occ, MASK_DIAGONAL[diagonal_of(square)]) | sliding_attacks(square, occ, MASK_ANTI_DIAGONAL[anti_diagonal_of(square)])
 
 
-BISHOP_ATTACK_MASKS: list
-BISHOP_ATTACK_SHIFTS: list
-BISHOP_ATTACKS: list
+# BISHOP_ATTACK_MASKS: ndarray = np.zeros(64, dtype=np.uint64)
+# BISHOP_ATTACK_SHIFTS: ndarray = np.zeros(64, dtype=np.uint64)
+# BISHOP_ATTACKS: ndarray = np.zeros((64, 512), dtype=np.uint64)
+BISHOP_ATTACK_MASKS: list = [0] * 64
+BISHOP_ATTACK_SHIFTS: list = [0] * 64
+BISHOP_ATTACKS: list = [[0] * 512] * 64
 
 BISHOP_MAGICS: tuple = (
 	0x0002020202020200, 0x0002020202020000, 0x0004010202000000, 0x0004040080000000,
@@ -258,7 +268,8 @@ def get_xray_bishop_attacks(square: Square, occ: int, blockers: int) -> int:
 	return attacks ^ get_bishop_attacks(square, occ ^ blockers)
 
 
-SQUARES_BETWEEN_BB: list
+# SQUARES_BETWEEN_BB: ndarray = np.zeros((64, 64), dtype=np.uint64)
+SQUARES_BETWEEN_BB: list = [[0] * 64] * 64
 
 # Initializes the lookup table for the bitboard of squares in between two given squares (0 if the 
 # two squares are not aligned)
@@ -271,7 +282,8 @@ def initialise_squares_between():
 			elif diagonal_of(sq1) == diagonal_of(sq2) or anti_diagonal_of(sq1) == anti_diagonal_of(sq2):
 				SQUARES_BETWEEN_BB[sq1][sq2] = get_bishop_attacks_for_init(sq1, sqs) & get_bishop_attacks_for_init(sq2, sqs)
 		
-LINE: list
+# LINE: ndarray = np.zeros((64, 64), dtype=np.uint64)
+LINE: list = [[0] * 64] * 64
 
 # Initializes the lookup table for the bitboard of all squares along the line of two given squares (0 if the 
 # two squares are not aligned)
@@ -286,20 +298,20 @@ def initialise_line():
 
 # Bitboard PAWN_ATTACKS[NCOLORS][NSQUARES];
 # Bitboard PSEUDO_LEGAL_ATTACKS[NPIECE_TYPES][NSQUARES];
-PAWN_ATTACKS: list
-PSEUDO_LEGAL_ATTACKS: list
+NCOLORS = 2
+NPIECE_TYPES = 6
+# PAWN_ATTACKS: ndarray = np.zeros((NCOLORS, 64), dtype=np.uint64)
+# PSEUDO_LEGAL_ATTACKS: ndarray = np.zeros((NPIECE_TYPES, 64), dtype=np.uint64)
+PAWN_ATTACKS: list = [[0] * 64] * 2
+PSEUDO_LEGAL_ATTACKS: list = [[0] * 64] * NPIECE_TYPES
 
 # Initializes the table containg pseudolegal attacks of each piece for each square. This does not include blockers
 # for sliding pieces
 def initialise_pseudo_legal():
-	# memcpy(PAWN_ATTACKS[WHITE], WHITE_PAWN_ATTACKS, len(WHITE_PAWN_ATTACKS))
-	# memcpy(PAWN_ATTACKS[BLACK], BLACK_PAWN_ATTACKS, len(BLACK_PAWN_ATTACKS))
-	# memcpy(PSEUDO_LEGAL_ATTACKS[KNIGHT], KNIGHT_ATTACKS, len(KNIGHT_ATTACKS))
-	# memcpy(PSEUDO_LEGAL_ATTACKS[KING], KING_ATTACKS, len(KING_ATTACKS))
-	PAWN_ATTACKS[WHITE] = WHITE_PAWN_ATTACKS
-	PAWN_ATTACKS[BLACK] = BLACK_PAWN_ATTACKS
-	PSEUDO_LEGAL_ATTACKS[KNIGHT] = KNIGHT_ATTACKS
-	PSEUDO_LEGAL_ATTACKS[KING] = KING_ATTACKS
+	PAWN_ATTACKS[WHITE] = list(WHITE_PAWN_ATTACKS)
+	PAWN_ATTACKS[BLACK] = list(BLACK_PAWN_ATTACKS)
+	PSEUDO_LEGAL_ATTACKS[KNIGHT] = list(KNIGHT_ATTACKS)
+	PSEUDO_LEGAL_ATTACKS[KING] = list(KING_ATTACKS)
 	for s in Square:
 		PSEUDO_LEGAL_ATTACKS[ROOK][s] = get_rook_attacks_for_init(s, 0)
 		PSEUDO_LEGAL_ATTACKS[BISHOP][s] = get_bishop_attacks_for_init(s, 0)
@@ -312,3 +324,4 @@ def initialise_all_databases():
 	initialise_squares_between()
 	initialise_line()
 	initialise_pseudo_legal()
+initialise_all_databases()

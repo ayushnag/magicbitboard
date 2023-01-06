@@ -1,8 +1,11 @@
 __author__ = "Ayush Nag"
-import engine
+from board import Board
 # Plays chess game
 checkmate, quit = False, False
 side: int = 0 # 0 = white, 1 = black   side ^= 1 to toggle
+
+white_start: int = 0xffff
+black_start: int = 0xffff000000000000
 
 # Lookup tables of square names in algebraic chess notation
 SQSTR = [
@@ -17,7 +20,9 @@ SQSTR = [
 	"None"
 ]
 
-while not engine.checkmate() and not quit:
+b = Board()
+
+while not b.checkmate() and not quit:
     print()
     
 
