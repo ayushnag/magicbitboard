@@ -21,8 +21,18 @@ class Board:
         # avail(color, king_square) is empty
         raise NotImplementedError
 
-# 1) how to go from nothing to attack set for each piece
-# 2) take in a board, and return the attack set for each piece
+
+# what should the board be able to do
+# b.checkmate()
+# b.current_player
+# b.current_player_moves - {p: }
+# b = Board(fen)
+# 
+
+# chessboard.js for JS element
+# show live hover moves
+# next to that the bitboard masks applied to get that moveset
+# (queen) would show rook and bishop bitboard and
 
 
 

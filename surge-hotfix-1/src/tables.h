@@ -18,6 +18,7 @@ extern Bitboard ROOK_ATTACKS[NSQUARES][4096];
 extern void initialise_rook_attacks();
 
 
+//gk extern constexpr Bitboard get_rook_attacks(Square square, Bitboard occ);
 extern Bitboard get_rook_attacks(Square square, Bitboard occ);
 extern Bitboard get_xray_rook_attacks(Square square, Bitboard occ, Bitboard blockers);
 
@@ -29,6 +30,7 @@ extern Bitboard BISHOP_ATTACKS[NSQUARES][512];
 extern void initialise_bishop_attacks();
 
 
+//gk extern constexpr Bitboard get_bishop_attacks(Square square, Bitboard occ);
 extern Bitboard get_bishop_attacks(Square square, Bitboard occ);
 extern Bitboard get_xray_bishop_attacks(Square square, Bitboard occ, Bitboard blockers);
 
@@ -55,6 +57,7 @@ constexpr Bitboard attacks(Square s, Bitboard occ) {
 
 //Returns a bitboard containing all squares that a piece on a square can move to, in the given position
 //Used when the piece type is not known at compile-time
+//gk (needs at least c++14)
 constexpr Bitboard attacks(PieceType pt, Square s, Bitboard occ) {
 	switch (pt) {
 	case ROOK:

@@ -7,6 +7,7 @@ __modified__ = "Ayush Nag"
 from ctypes import c_ulong
 from testpy.square import Square, rank_of, file_of, diagonal_of, anti_diagonal_of, MASK_RANK, MASK_FILE, MASK_DIAGONAL, MASK_ANTI_DIAGONAL, AFILE, BFILE, CFILE, DFILE, EFILE, FFILE, GFILE, HFILE, RANK1, RANK2, RANK3, RANK4, RANK5, RANK6, RANK7, RANK8, PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING
 
+
 # Precomputed square masks
 SQUARE_BB: tuple = (
 	0x1, 0x2, 0x4, 0x8,
